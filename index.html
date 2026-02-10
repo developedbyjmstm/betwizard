@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Parser</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0A2625 0%, #103F3E 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #9A7701;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #B5C3C3;
+            margin-bottom: 20px;
+        }
+        
+        .output-section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #9A7701;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #9A7701;
+        }
+        
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .sort-btn {
+            background: rgba(154, 119, 1, 0.7);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .sort-btn:hover {
+            background: rgba(154, 119, 1, 1);
+        }
+        
+        .sort-btn.active {
+            background: #9A7701;
+            box-shadow: 0 0 10px rgba(154, 119, 1, 0.5);
+        }
+        
+        .sort-label {
+            font-weight: bold;
+            color: #B5C3C3;
+            margin-right: 10px;
+        }
+        
+        .results {
+            background: rgba(10, 38, 37, 0.7);
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .match {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #9A7701;
+        }
+        
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .league-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            color: #B5C3C3;
+        }
+        
+        .league-flag {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .league-name {
+            color: #9A7701;
+            font-weight: bold;
+        }
+        
+        .date-time {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .time {
+            font-weight: bold;
+            color: #B5C3C3;
+        }
+        
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .team {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            font-weight: bold;
+        }
+        
+        .team1 {
+            text-align: left;
+        }
+        
+        .team2 {
+            text-align: right;
+        }
+        
+        .vs {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #9A7701;
+            margin: 0 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 0 10px;
+        }
+        
+        .probability-section {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+        
+        .probability {
+            text-align: center;
+            padding: 5px 10px;
+        }
+        
+        .probability-label {
+            font-size: 0.9rem;
+            color: #B5C3C3;
+        }
+        
+        .probability-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #FFC406;
+        }
+        
+        .prediction-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .prediction-item {
+            background: rgba(154, 119, 1, 0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .prediction-label {
+            font-size: 0.8rem;
+            color: #B5C3C3;
+        }
+        
+        .prediction-value {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        
+        .result-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .win {
+            background: #34c759;
+            color: white;
+        }
+        
+        .loss {
+            background: #ff3b30;
+            color: white;
+        }
+        
+        .pending {
+            background: #FFC406;
+            color: #000;
+        }
+        
+        .json-output {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #B5C3C3;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #B5C3C3;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="output-section">
+            <h2>MATCH PARSER</h2>
+            <div class="sort-controls" id="sortControls">
+                <span class="sort-label">Sort by:</span>
+                <button class="sort-btn active" data-sort="time-asc">Time (Earliest First)</button>
+                <button class="sort-btn" data-sort="time-desc">Time (Latest First)</button>
+                <button class="sort-btn" data-sort="league">League</button>
+            </div>
+            <div class="results" id="results">
+                <p class="loading">No matches parsed yet. Set HTML content using setHtmlContent().</p>
+            </div>
+            <div class="json-output" id="jsonOutput">{}</div>
+        </div>
+    </div>
+
+    <script>
+        // Variable that will contain the HTML to parse
+        var htmlContentVariable = '';
+        var currentMatches = [];
+        
+        // Function to set HTML content from Android
+        function setHtmlContent(html) {
+            htmlContentVariable = html;
+            // Automatically parse the HTML when it's set
+            parseAndDisplayResults();
+        }
+        
+        // Function to parse HTML and display results
+        function parseAndDisplayResults() {
+            if (!htmlContentVariable) {
+                document.getElementById('results').innerHTML = '<p class="no-results">No HTML content provided</p>';
+                return;
+            }
+            
+            const results = parseMatches(htmlContentVariable);
+            currentMatches = results; // Store matches for sorting
+            sortAndDisplayMatches('time-asc'); // Default sort by time ascending
+        }
+        
+        // Function to convert time string to minutes for sorting
+        function timeToMinutes(timeStr) {
+            if (!timeStr || timeStr === '-') return 9999; // Default high value for unknown times
+            
+            try {
+                const parts = timeStr.split(':');
+                if (parts.length >= 2) {
+                    const hours = parseInt(parts[0]) || 0;
+                    const minutes = parseInt(parts[1]) || 0;
+                    return hours * 60 + minutes;
+                }
+            } catch (e) {
+                console.error('Error parsing time:', timeStr, e);
+            }
+            return 9999; // Default high value if parsing fails
+        }
+        
+        // Function to sort matches
+        function sortMatches(matches, sortType) {
+            if (!matches || matches.length === 0) return matches;
+            
+            const matchesCopy = [...matches]; // Create a copy to avoid mutating original
+            
+            switch(sortType) {
+                case 'time-asc':
+                    // Sort by time ascending (earliest first)
+                    matchesCopy.sort((a, b) => {
+                        const timeA = timeToMinutes(a.time);
+                        const timeB = timeToMinutes(b.time);
+                        return timeA - timeB;
+                    });
+                    break;
+                    
+                case 'time-desc':
+                    // Sort by time descending (latest first)
+                    matchesCopy.sort((a, b) => {
+                        const timeA = timeToMinutes(a.time);
+                        const timeB = timeToMinutes(b.time);
+                        return timeB - timeA;
+                    });
+                    break;
+                    
+                case 'league':
+                    // Sort by league name, then by time
+                    matchesCopy.sort((a, b) => {
+                        const leagueA = a.league || '';
+                        const leagueB = b.league || '';
+                        
+                        // First sort by league
+                        if (leagueA < leagueB) return -1;
+                        if (leagueA > leagueB) return 1;
+                        
+                        // If same league, sort by time
+                        const timeA = timeToMinutes(a.time);
+                        const timeB = timeToMinutes(b.time);
+                        return timeA - timeB;
+                    });
+                    break;
+                    
+                default:
+                    // Default: sort by time ascending
+                    matchesCopy.sort((a, b) => {
+                        const timeA = timeToMinutes(a.time);
+                        const timeB = timeToMinutes(b.time);
+                        return timeA - timeB;
+                    });
+            }
+            
+            return matchesCopy;
+        }
+        
+        // Function to sort and display matches
+        function sortAndDisplayMatches(sortType) {
+            if (!currentMatches || currentMatches.length === 0) {
+                document.getElementById('results').innerHTML = '<p class="no-results">No matches found</p>';
+                return;
+            }
+            
+            const sortedMatches = sortMatches(currentMatches, sortType);
+            displayResults(sortedMatches);
+            
+            // Update active sort button
+            const sortButtons = document.querySelectorAll('.sort-btn');
+            sortButtons.forEach(btn => {
+                if (btn.dataset.sort === sortType) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Function to parse matches from HTML
+        function parseMatches(html) {
+            if (!html) return [];
+
+            try {
+                let matches = [];
+                let currentLeague = "";
+                let currentLeagueFlag = "";
+                
+                // Create a temporary DOM parser to work with the HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Get all table rows
+                const rows = doc.querySelectorAll('tr');
+                
+                rows.forEach((row, index) => {
+                    // Check if this is a league header row (has cells with class "league_head")
+                    const leagueHeadCells = row.querySelectorAll('td.league_head');
+                    if (leagueHeadCells.length > 0) {
+                        // This is a league header row
+                        // Look for image in the first cell
+                        const imgElement = row.querySelector('td.league_head img');
+                        if (imgElement && imgElement.src) {
+                            currentLeagueFlag = imgElement.src;
+                        }
+                        
+                        // Look for text in the last cell with league_head class
+                        const lastLeagueHeadCell = leagueHeadCells[leagueHeadCells.length - 1];
+                        if (lastLeagueHeadCell) {
+                            currentLeague = lastLeagueHeadCell.textContent.trim();
+                        }
+                        return; // Skip to next row
+                    }
+                    
+                    // Check if this is a match row (has time in first cell and doesn't have onclick to league page)
+                    if (row.children.length > 0 && /^\d{2}:\d{2}/.test(row.children[0].textContent.trim())) {
+                        const cells = row.children;
+                        
+                        // Extract time
+                        const time = cells[0].textContent.trim().split('\n')[0];
+                        
+                        // Extract team names and score
+                        const teamDiv = cells[1].querySelector('.flex-wrap');
+                        let team1 = "";
+                        let team2 = "";
+                        let scoreteam1 = "-";
+                        let scoreteam2 = "-";
+                        
+                        if (teamDiv) {
+                            const teamDivs = teamDiv.children;
+                            if (teamDivs.length >= 3) {
+                                // Team 1 (first div)
+                                team1 = teamDivs[0].textContent.trim();
+                                // Clean up team name (remove ... if present)
+                                if (team1.includes('...')) {
+                                    team1 = team1.replace('...', '');
+                                }
+                                
+                                // Score (second div)
+                                const scoreDiv = teamDivs[1];
+                                const strongTags = scoreDiv.querySelectorAll('strong');
+                                
+                                if (strongTags.length >= 2) {
+                                    // Has actual score
+                                    scoreteam1 = strongTags[0].textContent.trim();
+                                    scoreteam2 = strongTags[1].textContent.trim();
+                                } else {
+                                    // Check if it's "-:-" format
+                                    const scoreText = scoreDiv.textContent.trim();
+                                    if (scoreText && scoreText !== '-:-') {
+                                        // Try to parse other score formats
+                                        const match = scoreText.match(/(\d+)\s*[:]\s*(\d+)/);
+                                        if (match) {
+                                            scoreteam1 = match[1];
+                                            scoreteam2 = match[2];
+                                        }
+                                    }
+                                }
+                                
+                                // Team 2 (third div)
+                                team2 = teamDivs[2].textContent.trim();
+                                if (team2.includes('...')) {
+                                    team2 = team2.replace('...', '');
+                                }
+                            }
+                        }
+                        
+                        // Extract probabilities (columns 3, 4, 5)
+                        let probability1 = "0%";
+                        let probabilityx = "0%";
+                        let probability2 = "0%";
+                        
+                        // Probability 1 (Home win) - column index 2
+                        if (cells.length > 2 && cells[2]) {
+                            const prob1Text = cells[2].querySelector('text');
+                            if (prob1Text) {
+                                probability1 = prob1Text.textContent.trim();
+                            }
+                        }
+                        
+                        // Probability X (Draw) - column index 3
+                        if (cells.length > 3 && cells[3]) {
+                            const probXText = cells[3].querySelector('text');
+                            if (probXText) {
+                                probabilityx = probXText.textContent.trim();
+                            }
+                        }
+                        
+                        // Probability 2 (Away win) - column index 4
+                        if (cells.length > 4 && cells[4]) {
+                            const prob2Text = cells[4].querySelector('text');
+                            if (prob2Text) {
+                                probability2 = prob2Text.textContent.trim();
+                            }
+                        }
+                        
+                        // Extract tip (prediction) - column index 5
+                        let tip = "";
+                        if (cells.length > 5 && cells[5]) {
+                            const tipDiv = cells[5].querySelector('.circle-container');
+                            if (tipDiv) {
+                                tip = tipDiv.textContent.trim();
+                            }
+                        }
+                        
+                        // Extract HTFT (Half Time/Full Time) - column index 6
+                        let htft = "";
+                        if (cells.length > 6 && cells[6]) {
+                            htft = cells[6].textContent.trim();
+                        }
+                        
+                        // Extract CS tip (Correct Score) - column index 7
+                        let cstip = "";
+                        if (cells.length > 7 && cells[7]) {
+                            cstip = cells[7].textContent.trim();
+                        }
+                        
+                        // Determine result based on tip and actual score
+                        let result = "pending";
+                        
+                        // Only determine result if we have actual scores (not "-")
+                        if (scoreteam1 !== "-" && scoreteam2 !== "-") {
+                            // Convert scores to numbers
+                            const score1 = parseInt(scoreteam1);
+                            const score2 = parseInt(scoreteam2);
+                            const totalGoals = score1 + score2;
+                            
+                            // Clean and uppercase tip
+                            const cleanTip = tip.trim().toUpperCase();
+                            
+                            // Determine match outcome
+                            let matchOutcome = "";
+                            if (score1 > score2) {
+                                matchOutcome = "1"; // Home win
+                            } else if (score1 < score2) {
+                                matchOutcome = "2"; // Away win
+                            } else {
+                                matchOutcome = "X"; // Draw
+                            }
+                            
+                            // Check if tip correctly predicts outcome
+                            if (cleanTip) {
+                                // Standard tips (1X, 12, X2, 1, X, 2)
+                                if (cleanTip === "1X" && (matchOutcome === "1" || matchOutcome === "X")) {
+                                    result = "win";
+                                } else if (cleanTip === "12" && (matchOutcome === "1" || matchOutcome === "2")) {
+                                    result = "win";
+                                } else if (cleanTip === "X2" && (matchOutcome === "X" || matchOutcome === "2")) {
+                                    result = "win";
+                                } else if (cleanTip === "1" && matchOutcome === "1") {
+                                    result = "win";
+                                } else if (cleanTip === "X" && matchOutcome === "X") {
+                                    result = "win";
+                                } else if (cleanTip === "2" && matchOutcome === "2") {
+                                    result = "win";
+                                }
+                                // Draw No Bet tips
+                                else if (cleanTip === "1 DNB") {
+                                    // Same logic as 1X
+                                    if (matchOutcome === "1" || matchOutcome === "X") {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                } else if (cleanTip === "2 DNB") {
+                                    // Same logic as 2X
+                                    if (matchOutcome === "2" || matchOutcome === "X") {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                }
+                                // Over/Under goals
+                                else if (cleanTip.startsWith("+")) {
+                                    // Over goals (e.g., +1.5, +2.5, +3.5, +4.5)
+                                    const overValue = parseFloat(cleanTip.substring(1));
+                                    if (totalGoals > overValue) {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                } else if (cleanTip.startsWith("-")) {
+                                    // Under goals (e.g., -1.5, -2.5, -3.5, -4.5)
+                                    const underValue = parseFloat(cleanTip.substring(1));
+                                    if (totalGoals < underValue) {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                }
+                                // Both teams to score
+                                else if (cleanTip === "GG") {
+                                    if (score1 > 0 && score2 > 0) {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                }
+                                // No both teams to score
+                                else if (cleanTip === "NG") {
+                                    if (score1 === 0 || score2 === 0) {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                }
+                                // Handle other tip formats
+                                else if (cleanTip.includes("DNB")) {
+                                    // Generic DNB handling (fallback)
+                                    const team = cleanTip.split(" ")[0];
+                                    if (team === "1" && (matchOutcome === "1" || matchOutcome === "X")) {
+                                        result = "win";
+                                    } else if (team === "2" && (matchOutcome === "2" || matchOutcome === "X")) {
+                                        result = "win";
+                                    } else {
+                                        result = "loss";
+                                    }
+                                }
+                                // If tip exists but doesn't match any known pattern, check if it's a standard bet type
+                                else if (cleanTip && result === "pending") {
+                                    // Check if it's a simple 1, X, or 2 (case-insensitive)
+                                    if (["1", "X", "2"].includes(cleanTip)) {
+                                        if (cleanTip === matchOutcome) {
+                                            result = "win";
+                                        } else {
+                                            result = "loss";
+                                        }
+                                    } else {
+                                        // Unknown tip type, leave as pending
+                                        result = "pending";
+                                    }
+                                }
+                            }
+                        }
+                        
+                        matches.push({
+                            league: currentLeague,
+                            leagueflag: currentLeagueFlag,
+                            team1: team1,
+                            team2: team2,
+                            scoreteam1: scoreteam1,
+                            scoreteam2: scoreteam2,
+                            probability1: probability1,
+                            probabilityx: probabilityx,
+                            probability2: probability2,
+                            tip: tip,
+                            htft: htft,
+                            cstip: cstip,
+                            result: result,
+                            time: time
+                        });
+                    }
+                });
+                
+                return matches;
+                
+            } catch (e) {
+                console.error("Error parsing HTML:", e);
+                return [];
+            }
+        }
+        
+        // Function to display match results
+        function displayResults(matches) {
+            const resultsContainer = document.getElementById('results');
+            const jsonOutput = document.getElementById('jsonOutput');
+            
+            if (!matches || matches.length === 0) {
+                resultsContainer.innerHTML = '<p class="no-results">No matches found or parsing error occurred</p>';
+                jsonOutput.textContent = '[]';
+                return;
+            }
+            
+            // Display formatted results
+            resultsContainer.innerHTML = '';
+            matches.forEach(match => {
+                const matchEl = document.createElement('div');
+                matchEl.className = 'match';
+                
+                matchEl.innerHTML = `
+                    <div class="match-header">
+                        <div class="league-info">
+                            ${match.leagueflag ? `<img src="${match.leagueflag}" alt="League Flag" class="league-flag">` : ''}
+                            <div class="league-name">${match.league || 'Unknown League'}</div>
+                        </div>
+                        <div class="date-time">
+                            <div class="time">${match.time}</div>
+                        </div>
+                    </div>
+                    <div class="teams">
+                        <div class="team team1">${match.team1 || 'Unknown Team'}</div>
+                        <div class="vs">vs</div>
+                        <div class="team team2">${match.team2 || 'Unknown Team'}</div>
+                    </div>
+                    <div class="teams">
+                        <div class="score">${match.scoreteam1} - ${match.scoreteam2}</div>
+                    </div>
+                    <div class="probability-section">
+                        <div class="probability">
+                            <div class="probability-label">1</div>
+                            <div class="probability-value">${match.probability1}</div>
+                        </div>
+                        <div class="probability">
+                            <div class="probability-label">X</div>
+                            <div class="probability-value">${match.probabilityx}</div>
+                        </div>
+                        <div class="probability">
+                            <div class="probability-label">2</div>
+                            <div class="probability-value">${match.probability2}</div>
+                        </div>
+                    </div>
+                    <div class="prediction-section">
+                        <div class="prediction-item">
+                            <div class="prediction-label">Tip</div>
+                            <div class="prediction-value">${match.tip || 'N/A'}</div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">HT/FT</div>
+                            <div class="prediction-value">${match.htft || 'N/A'}</div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-label">CS Tip</div>
+                            <div class="prediction-value">${match.cstip || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="result-badge ${match.result}">
+                        ${match.result.toUpperCase()}
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(matchEl);
+            });
+            
+            // Display JSON output
+            jsonOutput.textContent = JSON.stringify(matches, null, 2);
+            
+            // If AndroidBridge exists (in WebView), call it
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.processMatches) {
+                AndroidBridge.processMatches(JSON.stringify(matches));
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-run if we have HTML content already set
+            if (htmlContentVariable) {
+                parseAndDisplayResults();
+            }
+            
+            // Add event listeners for sort buttons
+            document.getElementById('sortControls').addEventListener('click', function(e) {
+                if (e.target.classList.contains('sort-btn')) {
+                    const sortType = e.target.dataset.sort;
+                    sortAndDisplayMatches(sortType);
+                }
+            });
+            
+            // Add a test button for demonstration
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.marginTop = '20px';
+            buttonContainer.style.textAlign = 'center';
+            
+            const testBtn = document.createElement('button');
+            testBtn.textContent = 'Test with Sample HTML';
+            testBtn.style.padding = '10px 20px';
+            testBtn.style.backgroundColor = '#9A7701';
+            testBtn.style.color = 'white';
+            testBtn.style.border = 'none';
+            testBtn.style.borderRadius = '5px';
+            testBtn.style.cursor = 'pointer';
+            testBtn.style.fontSize = '16px';
+            
+            testBtn.onclick = function() {
+                // Use the exact HTML you provided
+                const sampleHtml = `
+                    <tr onclick="window.location.href='https://betwizad.com/primeira-liga/portugal'"> 
+                        <td class="text-center league_head" style=" width: 1.5%;"> 
+                            <img src="https://betwizad.com/admin/admin/public/league/668ff1c127afa.png" width="20"> 
+                        </td> 
+                        <td colspan="9" class="league_head ">Portugal Primeira Liga </td>
+                    </tr>
+                    <tr>
+                        <td class="text-center" style=" width: 1.5%;">19:45</td>
+                        <td style=" width: 17%;"> 
+                            <div class="flex-wrap d-flex justify-content-around " onclick="window.location.href='https://betwizad.com/match-details/primeira-liga/portugal/2026-02-09/famalicao-vs-avs/196885'"> 
+                                <div class="pl-3 text-left px-lg-1 text-lg-right col-lg-5 col-12"> Famalicao</div> 
+                                <div class="pl-3 text-left px-lg-1 text-lg-center col-lg-2 col-12"> 
+                                    <strong class="text-dark">3</strong>&nbsp;:&nbsp;<strong>1</strong> 
+                                </div> 
+                                <div class="pl-3 text-left text-lg-left col-lg-5 px-lg-2 col-12"> AVS </div> 
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 67.7% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 21.2% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 11.1% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" style=" width: 5%; ">
+                            <span>
+                                <div class="circle-container text-uppercase" style=""> 1X </div>
+                            </span>
+                        </td>
+                        <td onclick="window.location.href=''" style=" width: 3%;" class="text-center "> X/1 </td>
+                        <td onclick="window.location.href=''" style=" width: 3%;" class="text-center "> 2-1 </td>
+                    </tr>
+                    <tr>
+                        <td class="text-center" style=" width: 1.5%;">20:30</td>
+                        <td style=" width: 17%;"> 
+                            <div class="flex-wrap d-flex justify-content-around " onclick="window.location.href='https://betwizad.com/match-details/primeira-liga/portugal/2026-02-09/porto-vs-benfica/196886'"> 
+                                <div class="pl-3 text-left px-lg-1 text-lg-right col-lg-5 col-12"> Porto</div> 
+                                <div class="pl-3 text-left px-lg-1 text-lg-center col-lg-2 col-12"> 
+                                    <strong class="text-dark">2</strong>&nbsp;:&nbsp;<strong>2</strong> 
+                                </div> 
+                                <div class="pl-3 text-left text-lg-left col-lg-5 px-lg-2 col-12"> Benfica </div> 
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 45.0% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 30.0% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" class="text-center "style=" width: 3%;">
+                            <div class="circle-container"> 
+                                <div> 
+                                    <svg viewBox="0 0 100 100" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                                        <text x="50%" y="50%" text-anchor="middle" alignment-baseline="middle" font-size="23px" fill="black"> 25.0% </text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </td>
+                        <td onclick="window.location.href=''" style=" width: 5%; ">
+                            <span>
+                                <div class="circle-container text-uppercase" style=""> X2 </div>
+                            </span>
+                        </td>
+                        <td onclick="window.location.href=''" style=" width: 3%;" class="text-center "> X/X </td>
+                        <td onclick="window.location.href=''" style=" width: 3%;" class="text-center "> 1-1 </td>
+                    </tr>
+                `;
+                setHtmlContent(sampleHtml);
+            };
+            
+            buttonContainer.appendChild(testBtn);
+            
+            // Insert before the output section
+            const outputSection = document.querySelector('.output-section');
+            outputSection.insertBefore(buttonContainer, outputSection.firstChild);
+        });
+
+    </script>
+</body>
+</html>
