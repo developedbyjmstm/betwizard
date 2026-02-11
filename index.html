@@ -588,15 +588,13 @@
                                     result = "win";
                                 } else if (cleanTip === "1" && matchOutcome === "1") {
                                     result = "win";
-                                } else if (cleanTip === "hweh" && matchOutcome === "1") {
-                                    result = "win";
-                                 } else if (cleanTip === "X" && matchOutcome === "X") {
+                                } 
+                                else if (cleanTip === "X" && matchOutcome === "X") {
                                     result = "win";
                                 } else if (cleanTip === "2" && matchOutcome === "2") {
                                     result = "win";
-                                } else if (cleanTip === "aweh" && matchOutcome === "2") {
-                                    result = "win";
-                                }
+                                } 
+                                    
                                 // Draw No Bet tips
                                 else if (cleanTip === "1 DNB") {
                                     // Same logic as 1X
@@ -741,7 +739,7 @@ else if (/^ht[+-]\d+(\.\d+)?$/i.test(tip.trim())) {
                             probability1: probability1,
                             probabilityx: probabilityx,
                             probability2: probability2,
-                            tip: tip,
+                            tip: translateTip(team1, team2, tip),
                             htft: htft,
                             cstip: cstip,
                             result: result,
@@ -757,6 +755,51 @@ else if (/^ht[+-]\d+(\.\d+)?$/i.test(tip.trim())) {
                 return [];
             }
         }
+
+
+
+
+
+        function translateTip(team1, team2, tip) {
+
+    if (!tip) return "";
+
+    const cleanTip = tip.trim().toLowerCase();
+
+    if (cleanTip === "1") {
+        return team1;
+    }
+
+    if (cleanTip === "2") {
+        return team2;
+    }
+
+    if (cleanTip === "1x" || cleanTip === "x1") {
+        return team1 + " / draw";
+    }
+
+    if (cleanTip === "2x" || cleanTip === "x2") {
+        return team2 + " / draw";
+    }
+
+            if (cleanTip === "12" || cleanTip === "21") {
+        return team1 + team2;
+            }
+
+    if (cleanTip === "gg") {
+        return "both teams to score";
+    }
+
+    if (cleanTip === "ng") {
+        return "no both teams to score";
+    }
+
+    return tip; // fallback
+        }
+
+
+
+
         
         // Function to display match results
         function displayResults(matches) {
