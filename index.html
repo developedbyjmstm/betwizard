@@ -681,6 +681,27 @@ else if (/^[HA][+-]\d+(\.\d+)?$/.test(cleanTip)) {
         }
     }
 }
+
+    // ===============================
+// HT OVER / UNDER (case insensitive)
+// ===============================
+else if (/^ht[+-]\d+(\.\d+)?$/i.test(tip.trim())) {
+
+    const rawTip = tip.trim(); // usa o original
+    const operator = rawTip.charAt(2); // + ou -
+    const value = parseFloat(rawTip.substring(3));
+
+    if (!isNaN(value)) {
+
+        if (operator === "+") {
+            result = totalGoals > value ? "win" : "loss";
+        } 
+        else if (operator === "-") {
+            result = totalGoals < value ? "win" : "loss";
+        }
+
+    }
+}
                                 // Handle other tip formats
                                 else if (cleanTip.includes("DNB")) {
                                     // Generic DNB handling (fallback)
