@@ -647,6 +647,40 @@
                                         result = "loss";
                                     }
                                 }
+                                    // ===============================
+// TEAM GOALS (H+1.5, A-0.5 etc)
+// ===============================
+else if (/^[HA][+-]\d+(\.\d+)?$/.test(cleanTip)) {
+
+    const teamType = cleanTip.charAt(0); // H or A
+    const operator = cleanTip.charAt(1); // + or -
+    const value = parseFloat(cleanTip.substring(2));
+
+    let teamGoals = 0;
+
+    if (teamType === "H") {
+        teamGoals = score1;
+    } else if (teamType === "A") {
+        teamGoals = score2;
+    }
+
+    if (operator === "+") {
+        // Example H+1.5 → needs >= 2
+        if (teamGoals > value) {
+            result = "win";
+        } else {
+            result = "loss";
+        }
+    } 
+    else if (operator === "-") {
+        // Example H-1.5 → needs <= 1
+        if (teamGoals < value) {
+            result = "win";
+        } else {
+            result = "loss";
+        }
+    }
+}
                                 // Handle other tip formats
                                 else if (cleanTip.includes("DNB")) {
                                     // Generic DNB handling (fallback)
