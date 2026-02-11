@@ -700,6 +700,24 @@ else if (/^ht[+-]\d+(\.\d+)?$/i.test(tip.trim())) {
 
     }
 }
+
+                // Home Win Either Half
+else if (cleanTip === "hweh") {
+    if (score1 > score2) {
+        result = "win";
+    } else {
+        result = "loss";
+    }
+}
+
+// Away Win Either Half
+else if (cleanTip === "aweh") {
+    if (score2 > score1) {
+        result = "win";
+    } else {
+        result = "loss";
+    }
+}
                                 // Handle other tip formats
                                 else if (cleanTip.includes("DNB")) {
                                     // Generic DNB handling (fallback)
